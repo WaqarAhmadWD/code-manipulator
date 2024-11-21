@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" href="logo-dark.svg" type="image/svg+xml" />
+    <title>Code Manipulator</title>
+  </head>
+  <body class="bg-gray-900 flex justify-center items-center min-h-screen dark">
+    <div class="w-[75%] h-full min-h-[40rem]">
+      <div class="w-full h-full mt-8">
+        <div class="mb-5">
+          <textarea
+            id="code"
+            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+            placeholder="Enter code Here!"
+            rows="10"
+          ></textarea>
+        </div>
+        <div class="mb-5">
+          <textarea
+            id="preview"
+            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+            placeholder="Code Preview"
+            rows="10"
+            readonly
+          ></textarea>
+        </div>
+        <div id="stats" class="text-gray-400 mb-4 text-sm"></div>
+        <div class="flex flex-wrap gap-4">
+          <button
+            class="text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-800"
+            id="clear"
+          >
+            Clear
+          </button>
+          <button
+            class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+            id="blank"
+          >
+            Remove Blank spaces
+          </button>
+          <button
+            class="text-white bg-orange-700 hover:bg-orange-800 focus:ring-4 focus:outline-none focus:ring-orange-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-orange-600 dark:hover:bg-orange-700 dark:focus:ring-orange-800"
+            id="undo"
+          >
+            Undo Changes
+          </button>
+          <button
+            class="text-white bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:outline-none focus:ring-purple-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-800"
+            id="download"
+          >
+            Download Code
+          </button>
+          <button
+            class="text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800"
+            id="i8n"
+          >
+            Convert for i8n
+          </button>
+          <button
+            class="text-white bg-gray-700 hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-gray-500 dark:hover:bg-gray-600 dark:focus:ring-gray-700"
+            id="copy"
+          >
+            Copy to Clipboard
+          </button>
+        </div>
+        <div
+          id="highlight"
+          class="bg-gray-800 text-white p-4 rounded-lg mt-4 overflow-auto hidden"
+        ></div>
+      </div>
+    </div>
+    <script>
+      const code = document.getElementById("code");
+      const preview = document.getElementById("preview");
+      const blank = document.getElementById("blank");
+      const copy = document.getElementById("copy");
+      const undo = document.getElementById("undo");
+      const download = document.getElementById("download");
+      const i8n = document.getElementById("i8n");
+      const highlight = document.getElementById("highlight");
+      const stats = document.getElementById("stats");
+      const clear = document.getElementById("clear");
+
+      let originalCode = ""; // To store the original input
+
+      // Update statistics (character and word count)
+      function updateStats() {
+        const charCount = code.value.length;
+        const wordCount = code.value.split(/\s+/).filter((w) => w).length;
+        stats.innerText = `Characters: ${charCount}, Words: ${wordCount}`;
+      }
+
+      clear.addEventListener("click", () => {
+        code.value = "";
+        preview.value = "";
+        stats.innerText = "Characters: 0, Words: 0";
+        highlight.classList.add("hidden");
+      });
+
+      // Remove blank spaces
+      blank.addEventListener("click", () => {
+        const formattedCode = code.value
+          .replace(/>\s+</g, "><") // Minify HTML
+          .replace(/\s{2,}/g, " ") // Remove extra spaces
+          .trim(); // Trim leading and trailing spaces
+        preview.value = formattedCode;
+        highlight.innerHTML = formattedCode
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"(.*?)"/g, '<span style="color:yellow;">"$1"</span>'); // Basic syntax highlighting
+        highlight.classList.remove("hidden");
+      });
+
+      // Copy to clipboard
+      copy.addEventListener("click", () => {
+        navigator.clipboard.writeText(preview.value).then(() => {
+          copy.innerHTML = "Copied";
+          setTimeout(() => {
+            if (copy.innerHTML === "Copied")
+              copy.innerHTML = "Copy to Clipboard";
+          }, 1000);
+        });
+      });
+
+      // Undo changes
+      undo.addEventListener("click", () => {
+        preview.value = originalCode || "";
+        highlight.classList.add("hidden");
+      });
+
+      // Download processed code
+      download.addEventListener("click", () => {
+        const blob = new Blob([preview.value], { type: "text/plain" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "processed-code.txt";
+        a.click();
+      });
+
+      // Track original input and update stats
+      code.addEventListener("input", () => {
+        originalCode = code.value; // Store original input
+        updateStats();
+      });
+
+      //   i8n.addEventListener("click", () => {
+      //     const staticWords = [];
+      //     const regex = />([^<{}]+)</g; // Matches text content between tags, excluding dynamic bindings
+
+      //     let match;
+      //     let modifiedCode = code.value; // Copy the original code to modify
+
+      //     while ((match = regex.exec(code.value)) !== null) {
+      //       const text = match[1].trim();
+      //       if (text) {
+      //         staticWords.push(text);
+
+      //         // Replace the static text with {{$t('static word')}}
+      //         const replacement = `{{$t('${text}')}}`;
+
+      //         // Replace the text in the HTML code
+      //         modifiedCode = modifiedCode.replace(match[0], `>${replacement}<`);
+      //       }
+      //     }
+
+      //     // Display the modified code
+      //     preview.value = modifiedCode;
+
+      //     const jsonObject = staticWords.reduce((acc, item) => {
+      //       acc[item] = item; // Using the item as both key and value
+      //       return acc;
+      //     }, {});
+
+      //     highlight.classList.remove("hidden");
+      //     highlight.innerHTML = `<pre>${JSON.stringify(
+      //       jsonObject,
+      //       null,
+      //       2
+      //     )}</pre>`;
+      //   });
+      i8n.addEventListener("click", () => {
+        const staticWords = [];
+        const regex = />([^<{}]+)</g; // Matches text content between tags, excluding dynamic bindings
+
+        let match;
+        let modifiedCode = code.value; // Copy the original code to modify
+
+        while ((match = regex.exec(code.value)) !== null) {
+          let text = match[1].trim();
+          if (text) {
+            staticWords.push(text);
+
+            // Replace spaces with underscores for the key
+            const key = text.replace(/\s+/g, "_"); // Replace spaces with underscores
+            const replacement = `{{$t('${key}')}}`;
+
+            // Replace the text in the HTML code
+            modifiedCode = modifiedCode.replace(match[0], `>${replacement}<`);
+          }
+        }
+
+        // Display the modified code
+        preview.value = modifiedCode;
+
+        // Create a JSON object with keys as the transformed text (with underscores) and values as the original text
+        const jsonObject = staticWords.reduce((acc, item) => {
+          const key = item.replace(/\s+/g, "_"); // Replace spaces with underscores for the key
+          acc[key] = item; // Using the transformed key and original text as value
+          return acc;
+        }, {});
+
+        highlight.classList.remove("hidden");
+        highlight.innerHTML = `<pre>${JSON.stringify(
+          jsonObject,
+          null,
+          2
+        )}</pre>`;
+      });
+    </script>
+  </body>
+</html>
