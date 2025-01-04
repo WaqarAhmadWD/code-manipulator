@@ -12,6 +12,14 @@
     <div class="w-[75%] h-full min-h-[40rem]">
       <div class="w-full h-full mt-8">
         <div class="mb-5">
+          <div class="flex w-full justify-end items-center mb-2 gap-2">
+            <button
+              class="text-white bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:outline-none focus:ring-purple-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-800"
+              id="replace"
+            >
+              Verify JSON
+            </button>
+          </div>
           <textarea
             id="code"
             class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
@@ -54,11 +62,18 @@
           >
             Download Code
           </button>
+
           <button
             class="text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800"
             id="i8n"
           >
             Convert for i8n
+          </button>
+          <button
+            class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+            id="remove_dark_class"
+          >
+            Tailwind Dark Class Remover
           </button>
           <button
             class="text-white bg-gray-700 hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-gray-500 dark:hover:bg-gray-600 dark:focus:ring-gray-700"
@@ -84,7 +99,10 @@
       const highlight = document.getElementById("highlight");
       const stats = document.getElementById("stats");
       const clear = document.getElementById("clear");
-
+      const replace = document.getElementById("replace");
+      const find = document.getElementById("find");
+      const Input = document.getElementById("Input");
+      const remove_dark_class = document.getElementById("remove_dark_class");
       let originalCode = ""; // To store the original input
 
       // Update statistics (character and word count)
@@ -146,42 +164,13 @@
         originalCode = code.value; // Store original input
         updateStats();
       });
+      remove_dark_class.addEventListener("click", () => {
+        preview.value = code.value
+          .replace(/\bdark:[\w-:]+\b/g, "")
+          .replace(/\s+/g, " ")
+          .trim();
+      });
 
-      //   i8n.addEventListener("click", () => {
-      //     const staticWords = [];
-      //     const regex = />([^<{}]+)</g; // Matches text content between tags, excluding dynamic bindings
-
-      //     let match;
-      //     let modifiedCode = code.value; // Copy the original code to modify
-
-      //     while ((match = regex.exec(code.value)) !== null) {
-      //       const text = match[1].trim();
-      //       if (text) {
-      //         staticWords.push(text);
-
-      //         // Replace the static text with {{$t('static word')}}
-      //         const replacement = `{{$t('${text}')}}`;
-
-      //         // Replace the text in the HTML code
-      //         modifiedCode = modifiedCode.replace(match[0], `>${replacement}<`);
-      //       }
-      //     }
-
-      //     // Display the modified code
-      //     preview.value = modifiedCode;
-
-      //     const jsonObject = staticWords.reduce((acc, item) => {
-      //       acc[item] = item; // Using the item as both key and value
-      //       return acc;
-      //     }, {});
-
-      //     highlight.classList.remove("hidden");
-      //     highlight.innerHTML = `<pre>${JSON.stringify(
-      //       jsonObject,
-      //       null,
-      //       2
-      //     )}</pre>`;
-      //   });
       i8n.addEventListener("click", () => {
         const staticWords = [];
         const regex = />([^<{}]+)</g; // Matches text content between tags, excluding dynamic bindings
